@@ -223,7 +223,8 @@
 # `DRINKING_STATE_YEAR.csv` (i.e. `any_Utah_2005.csv`).
 # To write this function, you will either have to use a combination of dplyr 
 # and base R, or confront how dplyr uses *non-standard evaluation*
-# Hint: https://cran.r-project.org/web/packages/dplyr/vignettes/nse.html
+# Hint: https://github.com/tidyverse/dplyr/blob/34423af89703b0772d59edcd0f3485295b629ab0/vignettes/nse.Rmd
+# Hint: https://www.r-bloggers.com/non-standard-evaluation-and-standard-evaluation-in-dplyr/
 
 
 # Create the file `binge_Colorado_2007.csv` using your function.
