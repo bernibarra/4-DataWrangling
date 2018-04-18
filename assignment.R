@@ -43,7 +43,7 @@
 # To answer "Are there any locations where females drink more than males"?
 # Create a new dataframe by filtering the 2012 dataframe to the rows that 
 # meet the criterion. Keep only the `state`, `location`, and column of interest. 
-# Write your answer to `more_m_than_f.csv`.
+# Write your answer to `more_f_than_m.csv`.
 
 
 # To answer the question: "What is the location in which male and female 
