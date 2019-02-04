@@ -7,16 +7,6 @@
 # For all .csv file, make sure to exclude rownames, and write them to the
 # a folder called `output/` which you will create below.
 
-
-
-
-
-##############exclude rownames exclude rownamesexclude rownames
-# str(any_drinking_2012)
-
-
-
-
 ################################### Set up ###################################
 
 # Install (if not installed) + load dplyr package
@@ -120,11 +110,14 @@ biggest_state_diff <- highest_state$both_sexes_2012 - lowest_state$both_sexes_20
 # You should use the full any.drinking dataset in this function (not just 2012)
 get_state_data <- function(state_spec){
   
-}
-str(any_drinking)
-write.csv(state_only, "output/STATE_data.csv", row.names = F)
-# Demonstrate that you function works by passing "Utah" to the function
+  state_result <- any_drinking %>% 
+    filter(state == state_spec)
 
+  write.csv(state_result, "output/STATE_data.csv", row.names = F)
+}
+
+# Demonstrate that you function works by passing "Utah" to the function
+get_state_data("Utah")
 
 ############################ Binge drinking Dataset ############################
 
@@ -140,46 +133,115 @@ write.csv(state_only, "output/STATE_data.csv", row.names = F)
 # `binge_driking.csv` dataset. You should (again) think of Washington D.C. as
 # a state, and therefore *exclude it here*.
 # However, you should include "county-like" areas such as parishes and boroughs
-
+county_binge_drinking <- binge_drinking %>% 
+  filter(state != "National" & state != location)
 
 # Create an empty list in which to store answers to the questions below.
-
+binge_list <- list()
 
 # What is the average county level of binge drinking in 2012 for both sexes?
 # Store the number in your list as `avg_both_sexes`.
+avg_both_sexes <- county_binge_drinking %>% 
+  select(both_sexes_2012) %>% 
+  summarise(mean_avg = mean(both_sexes_2012, na.rm = T))
 
+binge_list <- list(avg_both_sexes = avg_both_sexes[[1]])
 
 # What is the name of the county with the largest increase in male binge
 # drinking between 2002 and 2012?
 # Store the county name in your list as `largest_male_increase`.
+male_increase_data <- binge_drinking %>% 
+  select(location, males_2002, males_2012) %>%
+  mutate(diff = males_2012 - males_2002)
+  
+largest_male_increase <- male_increase_data %>%
+  filter(diff == max(diff)) %>% 
+  select(location)
 
+binge_list <- c(binge_list, largest_male_increase = largest_male_increase[[1]])
 
 # How many counties experienced an increase in male binge drinking between
 # 2002 and 2012?
 # Store the number in your list as `num_male_increase`.
+num_male_increase_df <- male_increase_data %>%
+  filter(diff > 0) %>% 
+  summarise(total_rows = length(location), na.rm = T) %>% 
+  select(total_rows)
 
+num_male_increase <- num_male_increase_df[["total_rows"]]
+
+binge_list <- c(binge_list, num_male_increase = num_male_increase)
 
 # What fraction of counties experienced an increase in male binge drinking
 # between 2002 and 2012?
 # Store the fraction (num/total) in your list as `frac_male_increase`.
+tot_male_increase_df <- male_increase_data %>%
+  summarise(tot_rows = length(location), na.rm = T) %>% 
+  select(tot_rows)
 
+tot_male_increase <- tot_male_increase_df[["tot_rows"]]
 
+frac_male_increase <- num_male_increase / tot_male_increase
+
+binge_list <- c(binge_list, frac_male_increase = frac_male_increase)
 # How many counties experienced an increase in female binge drinking between
 # 2002 and 2012?
 # Store the number in your list as `num_female_increase`.
+female_increase_data <- binge_drinking %>% 
+  select(location, females_2002, females_2012) %>%
+  mutate(diff = females_2012 - females_2002)
 
+num_female_increase_df <- female_increase_data %>%
+  filter(diff > 0) %>% 
+  summarise(row_count = length(location), na.rm = T) %>% 
+  select(row_count)
+
+num_female_increase <- num_female_increase_df[["row_count"]]
+
+binge_list <- c(binge_list, num_female_increase = num_female_increase)
 
 # What fraction of counties experienced an increase in female binge drinking
 # between 2002 and 2012?
 # Store the fraction (num/total) in your list as `frac_female_increase`.
+tot_female_increase_df <- female_increase_data %>%
+  summarise(row_total = length(location), na.rm = T) %>% 
+  select(row_total)
 
+tot_female_increase <- tot_female_increase_df[["row_total"]]
+
+frac_female_increase <- num_female_increase / tot_female_increase
+
+binge_list <- c(binge_list, frac_female_increase = frac_female_increase)
 
 # How many counties experienced a rise in female binge drinking *and*
 # a decline in male binge drinking?
 # Store the number in your list as `num_f_increase_m_decrease`.
+f_m_change_data <- binge_drinking %>% 
+  select(location,males_2002, males_2012, females_2002, females_2012) %>%
+  mutate(diff_m = males_2012 - males_2002, diff_f = females_2012 - females_2002)
+
+f_m_change_data_df <- f_m_change_data %>%
+  filter(diff_m < 0 & diff_f > 0) %>% 
+  summarise(row_count = length(location), na.rm = T) %>% 
+  select(row_count)
+
+num_f_increase_m_decrease <- f_m_change_data_df[["row_count"]]
+
+binge_list <- c(binge_list, num_f_increase_m_decrease = num_f_increase_m_decrease)
 
 # Convert your list to a data frame, and write the results
 # to the file `binge_info.csv`
+
+#View(binge_list)
+#str(binge_list)
+#View(binge_info)
+#str(binge_info)
+
+binge_info <- as.data.frame(binge_list)
+
+write.csv(binge_info, "output/binge_info.csv", row.names = F)
+
+# https://www.rdocumentation.org/packages/dimRed/versions/0.2.2/topics/as.data.frame
 
 # The next questions return *data frames as results*:
 
@@ -189,13 +251,26 @@ write.csv(state_only, "output/STATE_data.csv", row.names = F)
 # same value. Your answer should be a *dataframe* with the location, state, and
 # 2012 binge drinking rate. Write this to a file called `min_binge.csv`.
 
+both_binge <- binge_drinking %>% 
+  select(state, location, both_sexes_2012) %>% 
+  filter(state != "National" & state != location) 
+
+min_binge <- both_binge %>% 
+  group_by(state) %>% 
+  summarise_all(min)
+
+write.csv(min_binge, "output/min_binge.csv", row.names = F)
 
 # What is the *maximum* level of binge drinking in each state in 2012 for
 # both sexes (across the counties)? Your answer should contain roughly 50 values
 # (one for each state), unless there are two counties in a state with the
 # same value. Your answer should be a *dataframe* with the location, state, and
 # 2012 binge drinking rate. Write this to a file called `max_binge.csv`.
+max_binge <- both_binge %>% 
+  group_by(state) %>% 
+  summarise_all(max)
 
+write.csv(max_binge, "output/max_binge.csv", row.names = F)
 
 ################################# Joining Data #################################
 # You'll often have to join different datasets together in order to ask more
@@ -208,17 +283,23 @@ write.csv(state_only, "output/STATE_data.csv", row.names = F)
 # Hint: you can get (and set!) column names using the colnames function.
 # This may take multiple lines of code.
 
+any_drinking_df <- any_drinking
+names(any_drinking_df) <- paste("any_", colnames(any_drinking), sep = "")
+
+# https://stackoverflow.com/questions/45535157/difference-between-dplyrrename-and-dplyrrename-all
+# https://stackoverflow.com/questions/34092237/applying-dplyrs-rename-to-all-columns-while-using-pipe-operator
 
 # Then, rename all prevalence columns in the binge_drinking dataset to the have
 # the prefix "binge_" (i.e., `males_2002` should now be `binge_males_2002`)
 # This may take multiple lines of code.
-
+binge_drinking_df <- binge_drinking
+names(binge_drinking_df) <- paste("binge_", colnames(binge_drinking), sep = "")
 
 # Then, create a dataframe by joining together the both datasets.
 # Think carefully about the *type* of join you want to do, and what the
 # *identifying columns* are. You will use this (joined) data to answer the
 # questions below.
-
+any_binge_full_df <- full_join(any_drinking_df, binge_drinking_df, by = c("any_location" = "binge_location"))
 
 # Create a column `diff_2012` storing the difference between `any` and `binge`
 # drinking for both sexes in 2012
