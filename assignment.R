@@ -292,6 +292,7 @@ names(any_drinking_df) <- paste("any_", colnames(any_drinking), sep = "")
 # Then, rename all prevalence columns in the binge_drinking dataset to the have
 # the prefix "binge_" (i.e., `males_2002` should now be `binge_males_2002`)
 # This may take multiple lines of code.
+
 binge_drinking_df <- binge_drinking
 names(binge_drinking_df) <- paste("binge_", colnames(binge_drinking), sep = "")
 
@@ -299,22 +300,33 @@ names(binge_drinking_df) <- paste("binge_", colnames(binge_drinking), sep = "")
 # Think carefully about the *type* of join you want to do, and what the
 # *identifying columns* are. You will use this (joined) data to answer the
 # questions below.
-any_binge_full_df <- full_join(any_drinking_df, binge_drinking_df, by = c("any_location" = "binge_location"))
+any_binge_full_df <- full_join(any_drinking_df, binge_drinking_df[-1], by = c("any_location" = "binge_location"))
 
 # Create a column `diff_2012` storing the difference between `any` and `binge`
 # drinking for both sexes in 2012
-
+any_binge_full_df <- mutate(any_binge_full_df, diff_2012 = any_both_sexes_2012 - binge_both_sexes_2012)
 
 # Which location has the greatest *absolute* difference between `any` and
 # `binge` drinking? Your answer should be a one row data frame with the state,
 # location, and column of interest (diff_2012).
 # Write this dataframe to `biggest_abs_diff_2012.csv`.
+any_binge_full_clean <- any_binge_full_df %>% 
+  select(any_state, any_location, diff_2012) %>% 
+  filter(any_state != "National" & any_state != any_location)
 
+biggest_abs_diff_2012 <- any_binge_full_clean %>% 
+  filter(diff_2012 == max(abs(diff_2012))) 
+
+write.csv(biggest_abs_diff_2012, "output/biggest_abs_diff_2012.csv", row.names = F)
 
 # Which location has the smallest *absolute* difference between `any` and
 # `binge` drinking? Your answer should be a one row data frame with the state,
 # location, and column of interest (diff_2012).
 # Write this dataframe to `smallest_abs_diff_2012.csv`.
+smallest_abs_diff_2012 <- any_binge_full_clean %>% 
+  filter(diff_2012 == min(abs(diff_2012)))
+
+write.csv(smallest_abs_diff_2012, "output/smallest_abs_diff_2012.csv", row.names = F)
 
 ############## Write a function to ask your own question(s) ####################
 # Even in an entry level data analyst role, people are expected to come up with
@@ -326,6 +338,19 @@ any_binge_full_df <- full_join(any_drinking_df, binge_drinking_df, by = c("any_l
 # function name. After writing your function, *demonstrate* that the function
 # works by passing in different parameters to your function.
 
+most_regional_drinkers <- function(region, year){
+  mrd_results <- any_drinking %>% 
+  select(state, paste0("both_sexes_", year), paste0("females_", year), paste0("males_", year)) %>%
+  filter(state %in% region) %>%
+  group_by(state) %>% 
+  summarise_all(max)
+}
+
+PNW <- c("Washington", "Oregon", "Idaho", "Montana", "Wyoming")
+PNW_max_state_drinkers <- most_regional_drinkers(PNW, 2012)
+
+Pacific_West <- c("Alaska", "California", "Hawaii", "Oregon", "Washington")
+PW_max_state_drinkers <- most_regional_drinkers(PNW, 2012)
 
 ################################### Challenge ##################################
 
@@ -333,6 +358,13 @@ any_binge_full_df <- full_join(any_drinking_df, binge_drinking_df, by = c("any_l
 # write a separate file for each of the 51 states (including Washington D.C.)
 # The challenge is to do this in a *single line of (very concise) code*
 
+# get_state_data("Utah")
+
+f_test <- function(para){
+  print(para)
+}
+varone <- c("a", "b", "c")
+f_test(varone[1:3])
 
 # Write a function that allows you to pass in a *dataframe* (i.e., in the format
 # of binge_drinking or any_drinking) *year*, and *state* of interest. The
@@ -349,3 +381,6 @@ any_binge_full_df <- full_join(any_drinking_df, binge_drinking_df, by = c("any_l
 
 
 # Create the file `binge_Colorado_2007.csv` using your function.
+binge_Colorado_2007 <- "empty"
+write.csv(binge_Colorado_2007, "output/binge_Colorado_2007.csv", row.names = F)
+
