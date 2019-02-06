@@ -112,8 +112,8 @@ get_state_data <- function(state_spec){
   
   state_result <- any_drinking %>% 
     filter(state == state_spec)
-
-  write.csv(state_result, "output/STATE_data.csv", row.names = F)
+  
+  write.csv(state_result, paste0("output/", state_spec, "_data.csv"), row.names = F)
 }
 
 # Demonstrate that you function works by passing "Utah" to the function
@@ -358,13 +358,7 @@ PW_max_state_drinkers <- most_regional_drinkers(PNW, 2012)
 # write a separate file for each of the 51 states (including Washington D.C.)
 # The challenge is to do this in a *single line of (very concise) code*
 
-# get_state_data("Utah")
-
-f_test <- function(para){
-  print(para)
-}
-varone <- c("a", "b", "c")
-f_test(varone[1:3])
+sapply(unique(any_drinking$state[-1]), get_state_data)
 
 # Write a function that allows you to pass in a *dataframe* (i.e., in the format
 # of binge_drinking or any_drinking) *year*, and *state* of interest. The
@@ -381,6 +375,24 @@ f_test(varone[1:3])
 
 
 # Create the file `binge_Colorado_2007.csv` using your function.
-binge_Colorado_2007 <- "empty"
-write.csv(binge_Colorado_2007, "output/binge_Colorado_2007.csv", row.names = F)
+library(rlang)
+drinking_state_year <- function(df_in, year_in, state_in){
+  both_sexes <- paste0("both_sexes_", year_in)
+  females <- paste0("females_", year_in)
+  males <- paste0("males_", year_in)
+  
+  working_df <- df_in %>% 
+    select(state, location, both_sexes, females, males) %>%
+    filter(state == state_in) %>%
+    arrange(desc(!!parse_quosure(both_sexes)))
+    
+  df_type <- gsub("_drinking", "", deparse(substitute(df_in)), ignore.case = T)
+  write.csv(working_df, paste0("output/", df_type,"_", state_in, "_", year_in,".csv"), row.names = F)
+}
 
+drinking_state_year(any_drinking, 2012, "Washington")
+drinking_state_year(any_drinking, 2012, "Oregon")
+drinking_state_year(binge_drinking, 2012, "Idaho")
+
+# https://stackoverflow.com/questions/47056091/arrange-doesnt-recognize-column-name-parameter?rq=1
+# https://stackoverflow.com/questions/45176431/extract-name-of-data-frame-in-r-as-character
