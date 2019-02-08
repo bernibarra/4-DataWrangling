@@ -74,10 +74,8 @@ write.csv(most_similar, "output/most_similar.csv", row.names = F)
 # For the sake of this analysis, you should treat Washington D.C. as a *state*
 # Write this data frame to `state_only.csv`.
 state_only <- any_drinking_2012 %>%
-  select(state, both_sexes_2012, females_2012, males_2012, diff) %>%
-  filter(state != "National") %>%
-  group_by(state) %>%
-  summarise_all(sum)
+  filter(state != "National" & state == location) %>%
+  select(state, both_sexes_2012, females_2012, males_2012, diff)
 
 write.csv(state_only, "output/state_only.csv", row.names = F)
 
@@ -187,6 +185,7 @@ tot_male_increase <- tot_male_increase_df[["tot_rows"]]
 frac_male_increase <- num_male_increase / tot_male_increase
 
 binge_list <- c(binge_list, frac_male_increase = frac_male_increase)
+
 # How many counties experienced an increase in female binge drinking between
 # 2002 and 2012?
 # Store the number in your list as `num_female_increase`.
@@ -238,7 +237,7 @@ binge_list <- c(binge_list,
 # Convert your list to a data frame, and write the results
 # to the file `binge_info.csv`
 
-binge_info <- as.data.frame(binge_list)
+binge_info <- as.data.frame(binge_list, stringsAsFactors = F)
 
 write.csv(binge_info, "output/binge_info.csv", row.names = F)
 
